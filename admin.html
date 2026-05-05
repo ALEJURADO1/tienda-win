@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>WIN ADMIN | LOGIN</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body style="display:flex; align-items:center; justify-content:center; height:100vh; background:#000;">
+
+    <div class="admin-panel" style="width:400px; margin:0;">
+        <h2 style="color:#00FF88; text-align:center; margin-bottom:20px;">ADMIN LOGIN</h2>
+        <input type="email" id="login-email" placeholder="Correo">
+        <input type="password" id="login-pass" placeholder="Contraseña">
+        <button onclick="login()">Entrar</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script>
+        // PEGA TU MISMA CONFIGURACIÓN AQUÍ
+const firebaseConfig = {
+  apiKey: "AIzaSyA...", // <--- AQUÍ ESTÁ EL ERROR. Revisa que sea exactamente igual.
+  authDomain: "tu-proyecto.firebaseapp.com",
+  projectId: "tu-proyecto-id",
+  storageBucket: "tu-proyecto.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef"
+};
+        firebase.initializeApp(firebaseConfig);
+
+        function login() {
+            const email = document.getElementById("login-email").value;
+            const pass = document.getElementById("login-pass").value;
+
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    window.location.href = "index.html";
+                })
+                .catch(err => alert("Error: " + err.message));
+        }
+    </script>
+</body>
+</html>

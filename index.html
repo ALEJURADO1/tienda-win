@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIN PERFORMANCE | Admin Access</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <style>
+        :root {
+            --mac-bg: #F5F5F7;
+            --mac-surface: rgba(255, 255, 255, 0.72);
+            --mac-card: #FFFFFF;
+            --mac-accent: #0071E3; 
+            --mac-text: #1D1D1F;
+            --mac-text-sec: #86868B;
+            --mac-border: rgba(0, 0, 0, 0.1);
+            --mac-blur: blur(20px) saturate(180%);
+            --ease-yagi: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            background-color: var(--mac-bg); 
+            color: var(--mac-text); 
+            overflow-x: hidden; 
+        }
+
+        /* --- INTRO --- */
+        #intro { 
+            position: fixed; inset: 0; z-index: 10000; 
+            background: #000; display: flex; 
+            transition: transform 1s var(--ease-yagi), opacity 1s ease;
+        }
+        #intro.out { transform: scale(1.05); opacity: 0; pointer-events: none; }
+        #bg-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+
+        .intro-content { 
+            position: relative; z-index: 10; 
+            width: 100%; height: 100vh;
+            display: flex; flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 100px;
+            text-align: center;
+            color: white;
+        }
+
+        .btn-audio { 
+            background: #FFF; color: #000; border: none; 
+            padding: 18px 45px; border-radius: 50px; font-weight: 700; 
+            cursor: pointer; transition: 0.4s var(--ease-yagi); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+
+        /* --- TIENDA --- */
+        .header {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
+            background: var(--mac-surface); backdrop-filter: var(--mac-blur);
+            border-bottom: 1px solid var(--mac-border);
+        }
+        .header-container { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; }
+
+        .filtros { 
+            display: flex; justify-content: center; gap: 5px; 
+            margin: 120px auto 40px; background: rgba(0,0,0,0.05);
+            padding: 4px; border-radius: 12px; width: fit-content;
+        }
+        .filtros button {
+            background: transparent; border: none; color: var(--mac-text-sec);
+            padding: 8px 24px; border-radius: 8px; cursor: pointer;
+            font-weight: 600; transition: 0.3s;
+        }
+        .filtros button.active { background: #FFF; color: var(--mac-text); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+
+        .catalogo { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 30px; padding: 0 40px 100px; max-width: 1400px; margin: 0 auto;
+        }
+        
+        .card {
+            background: var(--mac-card); border-radius: 24px; overflow: hidden;
+            border: 1px solid var(--mac-border); transition: 0.6s var(--ease-yagi);
+            cursor: pointer; animation: fadeInUp 0.8s var(--ease-yagi) backwards;
+        }
+        .card:hover { transform: translateY(-10px); }
+        .card img { width: 100%; height: 350px; object-fit: cover; }
+        .card-info { padding: 20px; }
+
+        /* --- PANEL ADMIN ESTILO macOS --- */
+        #admin-panel {
+            display: none;
+            background: #FFF;
+            margin: 100px 40px 40px;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--mac-border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .admin-grid input, .admin-grid select { 
+            padding: 12px; border-radius: 10px; border: 1px solid #DDD; font-family: inherit;
+        }
+        .btn-save { 
+            background: var(--mac-accent); color: #FFF; border: none; 
+            padding: 15px 30px; border-radius: 12px; font-weight: 600; cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* --- MODAL --- */
+        .modal { 
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(15px); 
+            align-items: center; justify-content: center; opacity: 0; transition: 0.4s;
+        }
+        .modal.active { display: flex; opacity: 1; }
+        .modal-panel {
+            width: 1000px; max-width: 95%; border-radius: 28px;
+            background: #FFF; overflow: hidden; display: flex;
+            transform: scale(0.9); transition: 0.5s var(--ease-yagi);
+        }
+        .modal.active .modal-panel { transform: scale(1); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PANTALLA INTRO -->
+    <div id="intro">
+        <video id="bg-video" autoplay playsinline loop>
+            <source src="video/videointro.mp4" type="video/mp4">
+        </video>
+        <div class="intro-content">
+            <h1 style="font-size: 3rem; font-weight: 700; letter-spacing: -2px; margin-bottom: 10px;"></h1>
+            <p style="letter-spacing: 5px; font-size: 0.8rem; opacity: 0.8; margin-bottom: 40px;">CALIDAD SIN LÍMITES</p>
+            <button id="activar-audio" class="btn-audio">ENTRAR</button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO TIENDA -->
+    <div id="contenido" style="display: none; opacity: 0;">
+        <header class="header">
+            <div class="header-container">
+                <div style="display:flex; gap:8px">
+                    <div style="background:#FF5F57; width:12px; height:12px; border-radius:50%"></div>
+                    <div style="background:#FFBD2E; width:12px; height:12px; border-radius:50%"></div>
+                    <div style="background:#28C840; width:12px; height:12px; border-radius:50%"></div>
+                </div>
+                <strong style="font-weight:700;">WIN PERFORMANCE</strong>
+                <!-- BOTÓN DE LOGIN RE-ACTIVADO -->
+                <span id="btn-login-nav" style="cursor:pointer; color:var(--mac-text-sec); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Admin Login</span>
+            </div>
+        </header>
+
+        <!-- PANEL DE ADMINISTRACIÓN (Solo visible tras login) -->
+        <div id="admin-panel">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 1.2rem;">Panel de Inventario</h2>
+                <button onclick="firebase.auth().signOut()" style="background:none; border:none; color:red; cursor:pointer; font-size: 0.8rem;">Cerrar Sesión</button>
+            </div>
+            <div class="admin-grid">
+                <input type="text" id="admin-nombre" placeholder="Nombre del producto">
+                <input type="text" id="admin-precio" placeholder="Precio (Ej: Bs 150)">
+                <input type="text" id="admin-desc" placeholder="Descripción corta">
+                <select id="admin-cat">
+                    <option value="ropa">Ropa</option>
+                    <option value="accesorios">Accesorios</option>
+                </select>
+                <input type="file" id="file-principal">
+            </div>
+            <button onclick="subirProducto()" id="btn-upload" class="btn-save">Guardar Producto</button>
+        </div>
+
+        <div class="filtros">
+            <button class="active" onclick="filtrar('todos')">Todos</button>
+            <button onclick="filtrar('ropa')">Ropa</button>
+            <button onclick="filtrar('accesorios')">Accesorios</button>
+        </div>
+
+        <div id="catalogo" class="catalogo"></div>
+    </div>
+
+    <!-- MODAL PRODUCTO -->
+    <div id="modal" class="modal" onclick="if(event.target == this) cerrarModal()">
+        <div class="modal-panel">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; width: 100%;">
+                <div style="background: #F2F2F7; padding: 30px; display: flex; align-items: center; justify-content: center;">
+                    <img id="modal-img" src="" style="max-width: 100%; border-radius: 12px;">
+                </div>
+                <div style="padding: 40px;">
+                    <h2 id="modal-title" style="font-size: 2rem; margin-bottom: 10px;"></h2>
+                    <p id="modal-precio" style="font-size: 1.5rem; font-weight: 700; color: var(--mac-accent); margin-bottom: 20px;"></p>
+                    <p id="modal-desc" style="color: var(--mac-text-sec); line-height: 1.5; margin-bottom: 30px;"></p>
+                    <button id="modal-wsp" style="background:var(--mac-accent); color:white; border:none; padding:18px; border-radius:12px; width:100%; cursor:pointer; font-weight:700;">WHATSAPP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWT2luJWFvyJ_DEbl6o_Df3D_I0q-DJJQ",
+            authDomain: "winsports100.firebaseapp.com",
+            projectId: "winsports100",
+            storageBucket: "winsports100.firebasestorage.app",
+            messagingSenderId: "407378833003",
+            appId: "1:407378833003:web:44f28ecc70f490257a8b2e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // CLOUDINARY CONFIG
+        const CLOUD_NAME = "diobje3nc"; 
+        const UPLOAD_PRESET = "wafivogu"; 
+
+        let productos = [];
+
+        // TRANSICIÓN
+        document.getElementById("activar-audio").onclick = function() {
+            const video = document.getElementById("bg-video");
+            video.muted = false;
+            document.getElementById("intro").classList.add("out");
+            setTimeout(() => {
+                video.pause();
+                document.getElementById("intro").style.display = "none";
+                document.getElementById("contenido").style.display = "block";
+                setTimeout(() => {
+                    document.getElementById("contenido").style.opacity = "1";
+                    cargarProductos();
+                }, 50);
+            }, 1000);
+        };
+
+        // --- LÓGICA DE LOGIN ---
+        document.getElementById("btn-login-nav").onclick = () => {
+            if(auth.currentUser) {
+                if(confirm("¿Quieres cerrar sesión?")) auth.signOut();
+            } else {
+                const email = prompt("Introduce tu correo de administrador:");
+                const pass = prompt("Introduce tu contraseña:");
+                if(email && pass) {
+                    auth.signInWithEmailAndPassword(email, pass)
+                        .catch(err => alert("Error: " + err.message));
+                }
+            }
+        };
+
+        // Escuchar estado de sesión
+        auth.onAuthStateChanged(user => {
+            const panel = document.getElementById("admin-panel");
+            const btnNav = document.getElementById("btn-login-nav");
+            if(user) {
+                panel.style.display = "block";
+                btnNav.innerText = "Cerrar Sesión";
+                btnNav.style.color = "red";
+            } else {
+                panel.style.display = "none";
+                btnNav.innerText = "Admin Login";
+                btnNav.style.color = "var(--mac-text-sec)";
+            }
+        });
+
+        // FUNCIONES DE PRODUCTOS
+        function cargarProductos() {
+            db.collection("productos").orderBy("fecha", "desc").onSnapshot(snap => {
+                productos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderizarCatalogo(productos);
+            });
+        }
+
+        function renderizarCatalogo(lista) {
+            const cont = document.getElementById("catalogo");
+            cont.innerHTML = lista.map((p, i) => `
+                <div class="card" onclick="verProducto('${p.id}')" style="animation-delay: ${i * 0.1}s">
+                    <img src="${p.imagen}">
+                    <div class="card-info">
+                        <h3>${p.nombre}</h3>
+                        <p>${p.precio}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function subirProducto() {
+            const file = document.getElementById("file-principal").files[0];
+            if(!file) return alert("Selecciona una imagen");
+
+            const btn = document.getElementById("btn-upload");
+            btn.innerText = "Subiendo..."; btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", UPLOAD_PRESET);
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
+                const data = await res.json();
+                
+                await db.collection("productos").add({
+                    nombre: document.getElementById("admin-nombre").value,
+                    precio: document.getElementById("admin-precio").value,
+                    desc: document.getElementById("admin-desc").value,
+                    categoria: document.getElementById("admin-cat").value,
+                    imagen: data.secure_url,
+                    fecha: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("¡Producto añadido!");
+                location.reload();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        function verProducto(id) {
+            const p = productos.find(x => x.id === id);
+            document.getElementById("modal-img").src = p.imagen;
+            document.getElementById("modal-title").innerText = p.nombre;
+            document.getElementById("modal-precio").innerText = p.precio;
+            document.getElementById("modal-desc").innerText = p.desc;
+            document.getElementById("modal-wsp").onclick = () => window.open(`https://wa.me/59170000000?text=Hola, quiero ${p.nombre}`);
+            const modal = document.getElementById("modal");
+            modal.style.display = "flex";
+            setTimeout(() => modal.classList.add("active"), 10);
+        }
+
+        function cerrarModal() {
+            const m = document.getElementById("modal");
+            m.classList.remove("active");
+            setTimeout(() => m.style.display="none", 500);
+        }
+
+        function filtrar(cat) {
+            document.querySelectorAll(".filtros button").forEach(b => b.classList.toggle("active", b.innerText.toLowerCase() === cat.toLowerCase()));
+            renderizarCatalogo(cat === 'todos' ? productos : productos.filter(p => p.categoria === cat));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+/* PALETA macOS LIGHT MODE */
+:root {
+    --mac-bg: #F5F5F7;
+    --mac-surface: rgba(255, 255, 255, 0.72);
+    --mac-card: #FFFFFF;
+    --mac-accent: #0071E3; /* Azul Apple */
+    --mac-text: #1D1D1F;
+    --mac-text-sec: #86868B;
+    --mac-border: rgba(0, 0, 0, 0.1);
+    --mac-blur: blur(20px) saturate(180%);
+    --primary: #0071E3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Montserrat", sans-serif; 
+    background-color: var(--mac-bg); 
+    color: var(--mac-text); 
+    overflow-x: hidden; 
+}
+
+/* 🎬 INTRO ACTUALIZADA */
+#intro { 
+    position: fixed; inset: 0; z-index: 10000; 
+    background: #FFF; display: flex; align-items: center; justify-content: center; 
+    transition: transform 0.8s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.8s;
+}
+#intro.out { transform: translateY(-100%); opacity: 0; }
+
+.btn-audio { 
+    background: var(--mac-text); color: #FFF; border: none; 
+    padding: 16px 32px; border-radius: 12px; font-weight: 600; 
+    cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* 🖥️ HEADER GLASSMORPHISM */
+.header {
+    position: fixed; top: 0; width: 100%; z-index: 1000;
+    background: var(--mac-surface); backdrop-filter: var(--mac-blur);
+    border-bottom: 3px solid var(--mac-border);
+}
+.header-container { height: 80px; display: flex; justify-content: space-between; align-items: center; padding: 0 80px; }
+.logo { height: 70px; filter: invert(0); } /* Ajustar si tu logo es oscuro */
+
+/* 🎛️ FILTROS ESTILO SEGMENTED CONTROL */
+.filtros { 
+    display: flex; justify-content: center; gap: 5px; 
+    margin: 100px auto 40px; background: rgba(0,0,0,0.05);
+    padding: 4px; border-radius: 12px; width: fit-content;
+}
+.filtros button {
+    background: transparent; border: none; color: var(--mac-text-sec);
+    padding: 8px 24px; border-radius: 8px; cursor: pointer;
+    font-weight: 600; transition: 0.2s;
+}
+.filtros button.active { 
+    background: #FFF; color: var(--mac-text); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+}
+
+/* 📦 CATALOGO */
+.catalogo { 
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 30px; padding: 0 40px 100px; max-width: 1400px; margin: 0 auto;
+}
+.card {
+    background: var(--mac-card); border-radius: 24px; overflow: hidden;
+    border: 1px solid var(--mac-border); transition: 0.4s cubic-bezier(0.2, 1, 0.2, 1);
+}
+.card:hover { transform: scale(1.02); box-shadow: 0 30px 60px rgba(0,0,0,0.08); }
+.card img { width: 100%; height: 380px; object-fit: cover; }
+.card h3 { padding: 20px 20px 5px; font-weight: 700; font-size: 1.2rem; }
+.card p { padding: 0 20px 20px; color: var(--mac-accent); font-weight: 700; font-size: 1.1rem; }
+
+/* 🖼️ MODAL ESTILO macOS WINDOW */
+.modal { 
+    background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px); 
+    align-items: center; justify-content: center; 
+}
+.modal-panel {
+    width: 1000px; height: 700px; border-radius: 20px;
+    background: #FFF; border: 1px solid var(--mac-border);
+    box-shadow: 0 50px 100px rgba(0,0,0,0.2);
+    display: flex; flex-direction: row; padding: 0; overflow: hidden;
+}
+.modal-grid { display: grid; grid-template-columns: 1.2fr 1fr; width: 100%; height: 100%; }
+.modal-gallery { background: #F2F2F7; padding: 40px; display: flex; flex-direction: column; height: 100%; }
+.main-image { background: none; flex: 1; display: flex; align-items: center; }
+.main-image img { border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+.modal-info { padding: 60px 40px; background: #FFF; }
+.modal-info h2 { font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 10px; }
+#modal-precio { font-size: 2rem; color: var(--mac-text); margin-bottom: 20px; }
+
+.btn-comprar { 
+    background: var(--mac-accent); color: #FFF; 
+    border-radius: 12px; padding: 18px; font-size: 1rem;
+}
+
+/* 🛠️ ADMIN PANEL ESTILO SYSTEM SETTINGS */
+.admin-panel {
+    background: var(--mac-surface); border: 1px solid var(--mac-border);
+    backdrop-filter: var(--mac-blur); border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+.admin-panel input, .admin-panel select {
+    background: #FFF; border: 1px solid var(--mac-border);
+    color: var(--mac-text); padding: 12px; border-radius: 8px;
+}
+#btn-upload { background: var(--mac-accent); color: #FFF; border-radius: 10px; }
+
+/* Botones de ventana macOS */
+.window-controls { display: flex; gap: 8px; margin-bottom: 20px; }
+.win-dot { width: 12px; height: 12px; border-radius: 50%; }
+.win-red { background: #FF5F57; } .win-yellow { background: #FFBD2E; } .win-green { background: #28C840; }
+
+@media (max-width: 900px) {
+    .modal-panel { flex-direction: column; height: 95vh; width: 95%; }
+    .modal-grid { grid-template-columns: 1fr; }
+    .modal-gallery { height: 400px; }
+}
